@@ -19,7 +19,7 @@ const hardcodedPosts = [
     image: 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80',
     category: 'Lifestyle'
   },
-  { 
+  {
     id: 2,
     title: 'Future of Web Development',
     excerpt: 'Exploring the latest trends and technologies shaping the future of web development.',
@@ -65,10 +65,14 @@ const hardcodedPosts = [
 
 export default function BlogPosts() {
   const [posts, setPosts] = useState(hardcodedPosts)
+  const [isClient, setIsClient] = useState(false)
   const router = useRouter()
-  const currentUser = getCurrentUser()
+  const [currentUser, setCurrentUser] = useState<string | null>(null)
 
   useEffect(() => {
+    setIsClient(true)
+    const user = getCurrentUser()
+    setCurrentUser(user)
     const userPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]')
     setPosts([...userPosts, ...hardcodedPosts])
   }, [])
@@ -91,6 +95,10 @@ export default function BlogPosts() {
     } else {
       alert('You can only edit your own posts.')
     }
+  }
+
+  if (!isClient) {
+    return null // or a loading state
   }
 
   return (

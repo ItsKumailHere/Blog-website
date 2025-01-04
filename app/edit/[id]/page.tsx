@@ -13,7 +13,7 @@ import { PageProps } from '@/.next/types/app/edit/[id]/page'
 
 const categories = [
   "Technology", "Lifestyle", "Travel", "Food", "Health", "Business", "Entertainment", "Other"
-] 
+]
 
 export default function EditPage({ params }: { params: { id: string } } & PageProps) {
   const [title, setTitle] = useState('')
@@ -21,14 +21,18 @@ export default function EditPage({ params }: { params: { id: string } } & PagePr
   const [category, setCategory] = useState('')
   const [image, setImage] = useState<string | null>(null)
   const [author, setAuthor] = useState('')
+  const [isClient, setIsClient] = useState(false)
   const router = useRouter()
-  const currentUser = getCurrentUser()
+  const [currentUser, setCurrentUser] = useState<string | null>(null)
 
   useEffect(() => {
+    setIsClient(true)
+    const user = getCurrentUser()
+    setCurrentUser(user)
     const posts = JSON.parse(localStorage.getItem('blogPosts') || '[]')
-    const post = posts.find((p: Storage) => p.id === parseInt(params.id))
+    const post = posts.find((p: { id: number; title: string; content: string; author: string; date: string; readTime: string; image: string; category: string }) => p.id === parseInt(params.id))
     if (post) {
-      if (post.author !== currentUser) {
+      if (post.author !== user) {
         alert('You can only edit your own posts.')
         router.push('/posts')
         return
@@ -39,7 +43,11 @@ export default function EditPage({ params }: { params: { id: string } } & PagePr
       setImage(post.image)
       setAuthor(post.author)
     }
-  }, [params.id, currentUser, router])
+  }, [params.id, router])
+
+  if (!isClient) {
+    return null // or a loading state
+  }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -59,19 +67,14 @@ export default function EditPage({ params }: { params: { id: string } } & PagePr
       return
     }
     const posts = JSON.parse(localStorage.getItem('blogPosts') || '[]')
-    const updatedPosts = posts.map((post: Storage) => {
-      if (post.id === parseInt(params.id)) {
-        return {
+    const updatedPosts = posts.map((post: { id: number; title: string; content: string; author: string; date: string; readTime: string; image: string; category: string }) => ({
           ...post,
           title,
           content,
           category,
           image: image || post.image,
           readTime: `${Math.ceil(content.split(' ').length / 200)} min read`,
-        }
-      }
-      return post
-    })
+        }))
     localStorage.setItem('blogPosts', JSON.stringify(updatedPosts))
     router.push('/posts')
   }
@@ -143,4 +146,6 @@ export default function EditPage({ params }: { params: { id: string } } & PagePr
     </div>
   )
 }
+
+
 
